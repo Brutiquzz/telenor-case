@@ -47,15 +47,29 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
+resource "azurerm_key_vault_key" "ssh" {
+  name         = "ssh-${module.common.conventional_name}"
+  key_vault_id = var.key_vault_id
+  key_type     = "RSA"
+  key_size     = 4096
+  key_opts     = ["sign", "verify"]
+}
+
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                = "vm-${module.common.conventional_name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  size                = "Standard_B1s"
+  name                            = "vm-${module.common.conventional_name}"
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = azurerm_resource_group.rg.location
+  size                            = "Standard_B1s"
+  admin_username                  = var.admin_username
   disable_password_authentication = true
-  encryption_at_host_enabled = true
-  zone = "1,2,3"
-  
+  encryption_at_host_enabled      = true
+  zone                            = "1,2,3"
+
+  admin_ssh_key {
+    username   = var.admin_username
+    public_key = azurerm_key_vault_key.ssh.public_key_openssh
+  }
+
   network_interface_ids = [
     azurerm_network_interface.nic.id,
   ]

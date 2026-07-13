@@ -13,22 +13,6 @@ variable "location_abbreviation" {
   type        = string
 }
 
-variable "admin_username" {
-  description = "The admin username for the virtual machine"
-  type        = string
-}
-
-variable "admin_password" {
-  description = "The admin password for the virtual machine"
-  type        = string
-  sensitive   = true
-}
-
-variable "ssh_public_key_path" {
-  description = "Path to the SSH public key file for the admin user"
-  type        = string
-}
-
 variable "ssh_admin_object_ids" {
   description = "List of Entra ID object IDs to grant Virtual Machine Administrator Login (sudo) access via az ssh vm"
   type        = list(string)

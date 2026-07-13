@@ -1,6 +1,6 @@
 locals {
-  conventional_name = "${var.servicename}-${var.environment}-${var.location_abbreviation}" 
-  locations = { 
+  conventional_name = "${var.servicename}-${var.environment}-${var.location_abbreviation}"
+  locations = {
     "us" = "East US"
     "eu" = "West Europe"
     "as" = "Southeast Asia"
