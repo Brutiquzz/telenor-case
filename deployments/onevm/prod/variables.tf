@@ -13,6 +13,11 @@ variable "location_abbreviation" {
   type        = string
 }
 
+variable "breakglass_public_key" {
+  description = "OpenSSH public key for the break-glass admin SSH account. Generate externally with ssh-keygen and store the private key in Key Vault as a secret."
+  type        = string
+}
+
 variable "ssh_admin_object_ids" {
   description = "List of Entra ID object IDs to grant Virtual Machine Administrator Login (sudo) access via az ssh vm"
   type        = list(string)

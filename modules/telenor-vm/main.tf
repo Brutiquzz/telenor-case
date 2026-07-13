@@ -6,29 +6,12 @@ module "common" {
   location_abbreviation = var.location_abbreviation
 }
 
-resource "azurerm_resource_group" "rg" {
-  name     = "rg-${module.common.conventional_name}"
-  location = module.common.location
-}
-
-resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-${module.common.conventional_name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "subnet" {
-  name                 = "snet-${module.common.conventional_name}"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
 resource "azurerm_public_ip" "pip" {
+  count = var.enable_public_ip ? 1 : 0
+
   name                = "pip-${module.common.conventional_name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = var.resource_group_name
+  location            = module.common.location
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
@@ -36,38 +19,28 @@ resource "azurerm_public_ip" "pip" {
 
 resource "azurerm_network_interface" "nic" {
   name                = "nic-${module.common.conventional_name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = var.resource_group_name
+  location            = module.common.location
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.subnet.id
+    subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.pip.id
+    public_ip_address_id          = var.enable_public_ip ? azurerm_public_ip.pip[0].id : null
   }
-}
-
-resource "azurerm_key_vault_key" "ssh" {
-  name         = "ssh-${module.common.conventional_name}"
-  key_vault_id = var.key_vault_id
-  key_type     = "RSA"
-  key_size     = 4096
-  key_opts     = ["sign", "verify"]
 }
 
 resource "azurerm_linux_virtual_machine" "vm" {
   name                            = "vm-${module.common.conventional_name}"
-  resource_group_name             = azurerm_resource_group.rg.name
-  location                        = azurerm_resource_group.rg.location
+  resource_group_name             = var.resource_group_name
+  location                        = module.common.location
   size                            = "Standard_B1s"
   admin_username                  = var.admin_username
-  disable_password_authentication = true
-  encryption_at_host_enabled      = true
   zone                            = "1,2,3"
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = azurerm_key_vault_key.ssh.public_key_openssh
+    public_key = var.breakglass_public_key
   }
 
   network_interface_ids = [

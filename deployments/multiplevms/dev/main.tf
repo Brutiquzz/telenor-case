@@ -1,9 +1,37 @@
-module "keyvault" {
-  source = "../../../modules/telenor-keyvault"
+module "rg" {
+  source = "../../../modules/telenor-rg"
 
-  servicename           = "ssh"
+  servicename           = "platform"
   environment           = "dev"
   location_abbreviation = "eu"
+}
+
+resource "azurerm_virtual_network" "vnet" {
+  name                = "vnet-platform-dev-eu"
+  resource_group_name = module.rg.resource_group_name
+  location            = module.rg.resource_group_location
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "snet_web" {
+  name                 = "snet-web-dev-eu"
+  resource_group_name  = module.rg.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_subnet" "snet_api" {
+  name                 = "snet-api-dev-eu"
+  resource_group_name  = module.rg.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_subnet" "snet_db" {
+  name                 = "snet-db-dev-eu"
+  resource_group_name  = module.rg.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = ["10.0.3.0/24"]
 }
 
 module "vm_web" {
@@ -12,7 +40,10 @@ module "vm_web" {
   servicename           = "web"
   environment           = "dev"
   location_abbreviation = "eu"
-  key_vault_id          = module.keyvault.key_vault_id
+  resource_group_name   = module.rg.resource_group_name
+  subnet_id             = azurerm_subnet.snet_web.id
+  enable_public_ip      = true
+  breakglass_public_key = "PLACEHOLDER — replace with output of: ssh-keygen -t rsa -b 4096 -f breakglass-dev"
 
   ssh_admin_object_ids = [
     "00000000-0000-0000-0000-000000000001",
@@ -29,7 +60,10 @@ module "vm_api" {
   servicename           = "api"
   environment           = "dev"
   location_abbreviation = "eu"
-  key_vault_id          = module.keyvault.key_vault_id
+  resource_group_name   = module.rg.resource_group_name
+  subnet_id             = azurerm_subnet.snet_api.id
+  enable_public_ip      = true
+  breakglass_public_key = "PLACEHOLDER — replace with output of: ssh-keygen -t rsa -b 4096 -f breakglass-dev"
 
   ssh_admin_object_ids = [
     "00000000-0000-0000-0000-000000000001",
@@ -46,7 +80,10 @@ module "vm_db" {
   servicename           = "db"
   environment           = "dev"
   location_abbreviation = "eu"
-  key_vault_id          = module.keyvault.key_vault_id
+  resource_group_name   = module.rg.resource_group_name
+  subnet_id             = azurerm_subnet.snet_db.id
+  enable_public_ip      = true
+  breakglass_public_key = "PLACEHOLDER — replace with output of: ssh-keygen -t rsa -b 4096 -f breakglass-dev"
 
   ssh_admin_object_ids = [
     "00000000-0000-0000-0000-000000000001",

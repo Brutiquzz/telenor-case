@@ -31,7 +31,23 @@ variable "admin_username" {
   default     = "azureuser"
 }
 
-variable "key_vault_id" {
-  description = "Resource ID of the Key Vault in which the VM's SSH key pair will be created"
+variable "resource_group_name" {
+  description = "Name of an existing resource group in which to create the VM resources"
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "ID of an existing subnet to attach the VM's NIC to"
+  type        = string
+}
+
+variable "enable_public_ip" {
+  description = "When true, creates a public IP and associates it with the NIC."
+  type        = bool
+  default     = false
+}
+
+variable "breakglass_public_key" {
+  description = "OpenSSH public key for the break-glass admin account."
   type        = string
 }

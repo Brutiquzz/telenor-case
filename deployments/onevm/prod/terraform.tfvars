@@ -1,3 +1,5 @@
+breakglass_public_key = "PLACEHOLDER — replace with output of: ssh-keygen -t rsa -b 4096 -f breakglass-prod"
+
 servicename           = "someservice"
 environment           = "prod"
 location_abbreviation = "eu"
